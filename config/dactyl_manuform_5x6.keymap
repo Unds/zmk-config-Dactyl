@@ -169,8 +169,8 @@ ZMK_CONDITIONAL_LAYER(adjust, NUM NAV, ADJ)
 &kp X        &kp Q         &kp M         &kp W          &kp Z               &kp K    &kp F          &kp SQT        &kp SEMI      &kp DOT
 &kp N1       &kp TAB       &kp ESC                                                                  &kp EQUAL      &kp MINUS     &kp FSLH
                                          &caps_word                         &kp DEL
-                                                &kp LGUI  &bs_del           &kp LALT        &lt FN RALT
-                                                &mo NAV   &lt NUMPAD SPACE  &tmt LSHFT RET  &mo NUM
+                                                &kp LGUI  &lt NUMPAD SPACE  &kp LALT        &lt FN RALT
+                                                &mo NAV   &bs_del           &tmt LSHFT RET  &mo NUM
             >;
         };
 
@@ -253,8 +253,8 @@ ZMK_CONDITIONAL_LAYER(adjust, NUM NAV, ADJ)
 &kp PERCENT  &kp CARET     &kp LPAR      &kp RPAR       &kp DOT              &none     &kp N1     &kp N2     &kp N3     &kp RET
 &none        &none         &none                                                                  &kp BSPC   &kp LS(TAB) &kp TAB
                                          &trans                              &trans
-                                                &trans    &trans             &trans    &trans
-                                                &trans    &kp SPACE          &kp RET   &kp N0
+                                                &trans    &kp SPACE          &trans    &trans
+                                                &trans    &trans             &kp RET   &kp N0
             >;
         };
 
@@ -267,8 +267,8 @@ ZMK_CONDITIONAL_LAYER(adjust, NUM NAV, ADJ)
 &kp LC(Z)    &kp LC(X)     &kp LC(C)     &kp LC(V)      &kp RET              &none     &none      &none      &none      &none
 &kp LSHFT    &kp TAB       &kp ESC                                                                &kp DEL    &none      &none
                                          &trans                              &none
-                                                &kp LGUI  &trans             &none     &none
-                                                &tog ONEH &kp SPACE          &none     &none
+                                                &kp LGUI  &kp SPACE          &none     &none
+                                                &tog ONEH &trans             &none     &none
             >;
         };
 
