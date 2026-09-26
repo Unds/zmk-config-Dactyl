@@ -3,7 +3,8 @@
  * Dactyl Manuform (Cosmos, handwired) - ported from the Corne keymap
  * ============================================================
  * Hardware: 2x SuperMini nRF52840, BLE split, left = central
- * Base layer: Colemak-DH with home row mods (GACS), QWERTY toggle on FN
+ * Base layer: Gallium (colstag) with home row mods (GACS)
+ * Toggles on FN: Colemak-DH (left middle extra key), QWERTY (left pinky extra key)
  *
  * 55 keys. Key positions (see the matrix transform in the shield .dtsi):
  *
@@ -34,13 +35,14 @@
 
 /* Layers */
 #define BASE    0
-#define QWERTY  1
-#define NUM     2
-#define NAV     3
-#define FN      4
-#define NUMPAD  5
-#define ONEH    6
-#define ADJ     7
+#define COLEMAK 1
+#define QWERTY  2
+#define NUM     3
+#define NAV     4
+#define FN      5
+#define NUMPAD  6
+#define ONEH    7
+#define ADJ     8
 
 /* Position labels, same naming as zmk-helpers' Corne labels (0 = innermost column) */
 #define LT0 13
@@ -121,19 +123,23 @@ ZMK_BEHAVIOR(bs_del, mod_morph,
     mods = <(MOD_LSFT|MOD_RSFT)>;
 )
 
-/* Combos (same keys as the Corne) */
-ZMK_COMBO(combo_esc,        &kp ESC,        LT1 LT2, BASE)
-ZMK_COMBO(combo_tab,        &kp TAB,        LT2 LT3, BASE)
-ZMK_COMBO(combo_caps_word,  &caps_word,     LM3 RM3, BASE)
-ZMK_COMBO(combo_del,        &kp DEL,        RT3 RT4, BASE)
-ZMK_COMBO(combo_screenshot, &kp LG(LS(S)),  LB3 LB4, BASE)
+/*
+ * Combos: same key positions as the Corne. Letters shown are Gallium.
+ * All use a 40 ms window and need 150 ms of idle before them, so letter
+ * rolls inside words (e.g. "ld" in "would") can't trigger them.
+ */
+ZMK_COMBO(combo_esc,        &kp ESC,        LT1 LT2, BASE, 40, 150)   // C + D
+ZMK_COMBO(combo_tab,        &kp TAB,        LT2 LT3, BASE, 40, 150)   // D + L
+ZMK_COMBO(combo_caps_word,  &caps_word,     LM3 RM3, BASE, 40, 150)   // R + E
+ZMK_COMBO(combo_del,        &kp DEL,        RT3 RT4, BASE, 40, 150)   // U + ,
+ZMK_COMBO(combo_screenshot, &kp LG(LS(S)),  LB3 LB4, BASE, 40, 150)   // Q + X
 
-ZMK_COMBO(combo_lpar, &kp LPAR, LM2 LM3, BASE, 40, 150)
-ZMK_COMBO(combo_rpar, &kp RPAR, RM3 RM2, BASE, 40, 150)
-ZMK_COMBO(combo_lbrc, &kp LBRC, LT3 LT4, BASE, 40, 150)
-ZMK_COMBO(combo_rbrc, &kp RBRC, RT2 RT3, BASE, 40, 150)
-ZMK_COMBO(combo_lbkt, &kp LBKT, LB2 LB3, BASE, 40, 150)
-ZMK_COMBO(combo_rbkt, &kp RBKT, RB2 RB3, BASE, 40, 150)
+ZMK_COMBO(combo_lpar, &kp LPAR, LM2 LM3, BASE, 40, 150)   // T + R
+ZMK_COMBO(combo_rpar, &kp RPAR, RM3 RM2, BASE, 40, 150)   // E + A
+ZMK_COMBO(combo_lbrc, &kp LBRC, LT3 LT4, BASE, 40, 150)   // L + B
+ZMK_COMBO(combo_rbrc, &kp RBRC, RT2 RT3, BASE, 40, 150)   // O + U
+ZMK_COMBO(combo_lbkt, &kp LBKT, LB2 LB3, BASE, 40, 150)   // M + Q
+ZMK_COMBO(combo_rbkt, &kp RBKT, RB2 RB3, BASE, 40, 150)   // ' + ;
 
 /* Hold NAV (left thumb) + NUM (right thumb) = ADJUST */
 ZMK_CONDITIONAL_LAYER(adjust, NUM NAV, ADJ)
@@ -155,16 +161,30 @@ ZMK_CONDITIONAL_LAYER(adjust, NUM NAV, ADJ)
         compatible = "zmk,keymap";
 
         base_layer {
-            display-name = "BASE";
+            display-name = "GALLIUM";
             bindings = <
              &kp N2        &kp N3        &kp N4         &kp N5              &kp N6   &kp N7         &kp N8         &kp N9        &kp N0
-&kp Q        &kp W         &kp F         &kp P          &kp B               &kp J    &kp L          &kp U          &kp Y         &kp SEMI
-&hml LGUI A  &hml LALT R   &hml LCTRL S  &hml LSHFT T   &kp G               &kp M    &hmr RSHFT N   &hmr RCTRL E   &hmr RALT I   &hmr RGUI O
-&kp Z        &kp X         &kp C         &kp D          &kp V               &kp K    &kp H          &kp COMMA      &kp DOT       &kp FSLH
-&kp N1       &kp TAB       &kp ESC                                                                  &kp EQUAL      &kp MINUS     &kp SQT
+&kp B        &kp L         &kp D         &kp C          &kp V               &kp J    &kp Y          &kp O          &kp U         &kp COMMA
+&hml LGUI N  &hml LALT R   &hml LCTRL T  &hml LSHFT S   &kp G               &kp P    &hmr RSHFT H   &hmr RCTRL A   &hmr RALT E   &hmr RGUI I
+&kp X        &kp Q         &kp M         &kp W          &kp Z               &kp K    &kp F          &kp SQT        &kp SEMI      &kp DOT
+&kp N1       &kp TAB       &kp ESC                                                                  &kp EQUAL      &kp MINUS     &kp FSLH
                                          &caps_word                         &kp DEL
                                                 &kp LGUI  &bs_del           &kp LALT        &lt FN RALT
                                                 &mo NAV   &lt NUMPAD SPACE  &tmt LSHFT RET  &mo NUM
+            >;
+        };
+
+        colemak_layer {
+            display-name = "COLEMAK-DH";
+            bindings = <
+             &trans        &trans        &trans         &trans              &trans   &trans         &trans         &trans        &trans
+&kp Q        &kp W         &kp F         &kp P          &kp B               &kp J    &kp L          &kp U          &kp Y         &kp SEMI
+&hml LGUI A  &hml LALT R   &hml LCTRL S  &hml LSHFT T   &kp G               &kp M    &hmr RSHFT N   &hmr RCTRL E   &hmr RALT I   &hmr RGUI O
+&kp Z        &kp X         &kp C         &kp D          &kp V               &kp K    &kp H          &kp COMMA      &kp DOT       &kp FSLH
+&trans       &trans        &trans                                                                   &trans         &trans        &kp SQT
+                                         &trans                             &trans
+                                                &trans    &trans            &trans          &trans
+                                                &trans    &trans            &trans          &trans
             >;
         };
 
@@ -175,7 +195,7 @@ ZMK_CONDITIONAL_LAYER(adjust, NUM NAV, ADJ)
 &kp Q        &kp W         &kp E         &kp R          &kp T               &kp Y    &kp U          &kp I          &kp O         &kp P
 &hml LGUI A  &hml LALT S   &hml LCTRL D  &hml LSHFT F   &kp G               &kp H    &hmr RSHFT J   &hmr RCTRL K   &hmr RALT L   &hmr RGUI SEMI
 &kp Z        &kp X         &kp C         &kp V          &kp B               &kp N    &kp M          &kp COMMA      &kp DOT       &kp FSLH
-&trans       &trans        &trans                                                                   &trans         &trans        &trans
+&trans       &trans        &trans                                                                   &trans         &trans        &kp SQT
                                          &trans                             &trans
                                                 &trans    &trans            &trans          &trans
                                                 &trans    &trans            &trans          &trans
@@ -217,7 +237,7 @@ ZMK_CONDITIONAL_LAYER(adjust, NUM NAV, ADJ)
 &kp F1       &kp F2        &kp F3        &kp F4            &kp F5                &bt BT_SEL 0    &bt BT_SEL 1      &bt BT_SEL 2  &bt BT_SEL 3  &bt BT_CLR
 &kp F6       &kp F7        &kp F8        &kp F9            &kp F10               &kp C_PREV      &kp C_PLAY_PAUSE  &kp C_NEXT    &kp C_MUTE    &kp C_VOL_DN
 &kp F11      &kp F12       &kp PSCRN     &kp SLCK          &kp PAUSE_BREAK       &kp LG(LS(S))   &none             &none         &none         &none
-&tog QWERTY  &kp CAPS      &none                                                                                   &kp C_VOL_UP  &none         &kp LG(SPACE)
+&tog QWERTY  &kp CAPS      &tog COLEMAK                                                                                  &kp C_VOL_UP  &none         &kp LG(SPACE)
                                          &trans                                  &trans
                                                 &trans    &trans                 &trans          &trans
                                                 &trans    &trans                 &trans          &trans
