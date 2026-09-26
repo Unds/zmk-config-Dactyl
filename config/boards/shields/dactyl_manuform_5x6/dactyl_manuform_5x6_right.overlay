@@ -1,6 +1,6 @@
 #include "dactyl_manuform_5x6.dtsi"
 
-// Right half uses the same pins as the left (to be confirmed by the diagnostic log);
+// Right half uses the same pins as the left (confirmed by the diagnostic log);
 // its columns start at 7 in the combined 7x14 transform.
 &default_transform {
     col-offset = <7>;

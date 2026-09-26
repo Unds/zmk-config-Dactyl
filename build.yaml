@@ -1,14 +1,20 @@
 # GitHub Actions build matrix. ZMK v0.3.0; nice_nano_v2 is the target for the SuperMini nRF52840.
 ---
 include:
-  # DIAGNOSTIC builds: USB logging on, all 98 matrix positions mapped.
+  - board: nice_nano_v2
+    shield: dactyl_manuform_5x6_left
+  - board: nice_nano_v2
+    shield: dactyl_manuform_5x6_right
+  - board: nice_nano_v2
+    shield: settings_reset
+
+  # Same firmware with USB logging, for debugging keys over the serial port.
+  # Uses more battery; flash the normal builds for daily use.
   - board: nice_nano_v2
     shield: dactyl_manuform_5x6_left
     snippet: zmk-usb-logging
-    artifact-name: dactyl_left_DIAG
+    artifact-name: dactyl_left_LOG
   - board: nice_nano_v2
     shield: dactyl_manuform_5x6_right
     snippet: zmk-usb-logging
-    artifact-name: dactyl_right_DIAG
-  - board: nice_nano_v2
-    shield: settings_reset
+    artifact-name: dactyl_right_LOG
