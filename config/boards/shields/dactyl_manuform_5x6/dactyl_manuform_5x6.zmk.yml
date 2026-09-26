@@ -1,0 +1,11 @@
+file_format: "1"
+id: dactyl_manuform_5x6
+name: Dactyl Manuform (Cosmos, handwired)
+type: shield
+url: https://ryanis.cool/cosmos
+requires: [pro_micro]
+features:
+  - keys
+siblings:
+  - dactyl_manuform_5x6_left
+  - dactyl_manuform_5x6_right

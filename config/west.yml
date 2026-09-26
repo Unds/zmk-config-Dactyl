@@ -5,7 +5,7 @@ manifest:
   projects:
     - name: zmk
       remote: zmkfirmware
-      revision: main
+      revision: v0.3.0 # Pinned release. Move to v0.4 once tagged (board becomes nice_nano//zmk).
       import: app/west.yml
   self:
     path: config
