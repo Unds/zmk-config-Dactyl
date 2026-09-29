@@ -19,21 +19,15 @@ include:
     snippet: zmk-usb-logging
     artifact-name: dactyl_right_LOG
 
-  # TEMPORARY radio test builds (left half, with logging). Every BLE link from the
-  # left half drops with a timeout (reason 0x08/0x3e) right as pairing starts.
-  # Each build changes exactly one setting; remove them once the cause is found.
+  # TEMPORARY: do these boards have a 32 kHz crystal? If a half boots and connects
+  # on this build, it does, and XTAL can replace SYNTH for better battery life.
   - board: nice_nano_v2
     shield: dactyl_manuform_5x6_left
     snippet: zmk-usb-logging
-    cmake-args: -DCONFIG_CLOCK_CONTROL_NRF_K32SRC_SYNTH=y
-    artifact-name: test_left_clock_synth
+    cmake-args: -DCONFIG_CLOCK_CONTROL_NRF_K32SRC_XTAL=y
+    artifact-name: test_left_clock_xtal
   - board: nice_nano_v2
-    shield: dactyl_manuform_5x6_left
+    shield: dactyl_manuform_5x6_right
     snippet: zmk-usb-logging
-    cmake-args: -DCONFIG_BT_CTLR_TX_PWR_0=y
-    artifact-name: test_left_txpwr_0
-  - board: nice_nano_v2
-    shield: dactyl_manuform_5x6_left
-    snippet: zmk-usb-logging
-    cmake-args: -DCONFIG_BT_CTLR_DATA_LENGTH_MAX=27 -DCONFIG_BT_AUTO_DATA_LEN_UPDATE=n
-    artifact-name: test_left_short_packets
+    cmake-args: -DCONFIG_CLOCK_CONTROL_NRF_K32SRC_XTAL=y
+    artifact-name: test_right_clock_xtal
