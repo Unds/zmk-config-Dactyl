@@ -27,9 +27,12 @@ const RIGHT_COLS = [
   { name: "ring", keys: [7, 17, 27, 37, 43] },
   { name: "pinky", keys: [8, 18, 28, 38, 44] },
 ];
-// Thumb rows, outer to inner for the left hand, inner to outer for the right.
-const LEFT_THUMBS = [[45], [47, 48], [51, 52]];
-const RIGHT_THUMBS = [[46], [49, 50], [53, 54]];
+// Thumb cluster as built (photos 2026-10-03): three keys in the row nearest the fingers,
+// two keys below them, the block tilted toward the centre. Listed outer to inner.
+// Confirmed against the board 2026-10-03 (base layer: L = Caps Word, Space, Bksp / Win, NAV;
+// R = Del, Alt, Enter / AltGr, NUM&SYM).
+const LEFT_THUMBS = [[45, 48, 52], [47, 51]];
+const RIGHT_THUMBS = [[46, 54, 50], [49, 53]];
 const KEY_COUNT = 55;
 
 // ---------- keycode labels ----------
@@ -153,10 +156,97 @@ function handHtml(cols, thumbs, layer, side) {
   return h;
 }
 
+// ---------- drawn SVG per layer ----------
+const KW = 58, KH = 50, PX = 64, PY = 56;
+const STAGGER_L = [26, 10, 0, 6, 18]; // pinky, ring, middle, index, inner
+const STAGGER_R = [18, 6, 0, 10, 26]; // inner, index, middle, ring, pinky
+const SVG_W = 980, SVG_H = 520;
+const X0_L = 20, X0_R = SVG_W - 20 - 5 * PX + (PX - KW);
+const Y0 = 34;
+const FILL = { key: "#ffffff", hrm: "#e8f0fa", modtap: "#e8f0fa", layertap: "#fff4e0", layer: "#fff4e0", toggle: "#fff4e0", sys: "#f3e8f8", trans: "#f1f0ec", none: "none" };
+
+function splitLabel(s) {
+  if (s.length <= 9) return [s];
+  const cut = (() => {
+    const half = s.length / 2;
+    let best = -1, bestDist = 99;
+    for (let i = 1; i < s.length - 1; i++) {
+      if (s[i] === " " || s[i] === "+") { const d = Math.abs(i - half); if (d < bestDist) { best = i; bestDist = d; } }
+    }
+    return best;
+  })();
+  if (cut < 0) return [s];
+  return s[cut] === "+" ? [s.slice(0, cut + 1), s.slice(cut + 1)] : [s.slice(0, cut), s.slice(cut + 1)];
+}
+
+function svgKey(k, x, y, pos) {
+  if (k.kind === "none") return `<rect x="${x}" y="${y}" width="${KW}" height="${KH}" rx="6" fill="none" stroke="#c9c7bd" stroke-dasharray="3 3"/>`;
+  let s = `<g data-pos="${pos}"><rect x="${x}" y="${y}" width="${KW}" height="${KH}" rx="6" fill="${FILL[k.kind] || "#fff"}" stroke="#9a988e"/>`;
+  const cx = x + KW / 2;
+  if (k.kind === "trans") return s + `<text x="${cx}" y="${y + KH / 2 + 5}" text-anchor="middle" font-size="13" fill="#9a988e">▽</text></g>`;
+  const lines = k.tap ? splitLabel(k.tap) : [];
+  const hasHold = !!k.hold, hasShift = !!k.shift;
+  const tapSize = lines.length > 1 || (lines[0] || "").length > 6 ? 10.5 : 13;
+  let cy = y + KH / 2 + (hasHold ? 3 : 0) - (hasShift ? 3 : 0);
+  if (hasHold && lines.length > 0) s += `<text x="${cx}" y="${y + 11}" text-anchor="middle" font-size="8.5" font-weight="600" fill="${k.kind === "hrm" || k.kind === "modtap" ? "#185fa5" : "#854f0b"}">${esc(k.hold)}</text>`;
+  if (lines.length === 0 && hasHold) {
+    s += `<text x="${cx}" y="${y + KH / 2 + 4}" text-anchor="middle" font-size="${k.hold.length > 5 ? 10 : 12}" font-weight="700" fill="#854f0b">${esc(k.hold)}</text>`;
+  } else {
+    const lh = tapSize + 1;
+    const top = cy - ((lines.length - 1) * lh) / 2 + tapSize / 2 - 1;
+    lines.forEach((ln, i) => { s += `<text x="${cx}" y="${top + i * lh}" text-anchor="middle" font-size="${tapSize}" font-weight="700" fill="#262521">${esc(ln)}</text>`; });
+  }
+  if (hasShift) s += `<text x="${cx}" y="${y + KH - 5}" text-anchor="middle" font-size="8" fill="#6b6a63">⇧ ${esc(k.shift)}</text>`;
+  return s + `</g>`;
+}
+
+function svgHand(L, cols, stagger, x0, side) {
+  let s = "";
+  cols.forEach((c, ci) => {
+    const x = x0 + ci * PX;
+    const firstRow = c.keys.findIndex((p) => p !== null);
+    s += `<text x="${x + KW / 2}" y="${Y0 - 6 + stagger[ci] + firstRow * PY}" text-anchor="middle" font-size="9" fill="#6b6a63">${c.name}</text>`;
+    c.keys.forEach((pos, r) => { if (pos !== null) s += svgKey(L.keys[pos], x, Y0 + stagger[ci] + r * PY, pos); });
+  });
+  // Thumb cluster: a row of three under the index and inner columns, a row of two
+  // below it offset by half a key, the block rotated so it runs down toward the centre.
+  const indexIdx = side === "left" ? 3 : 1;
+  const ox = x0 + indexIdx * PX + (side === "left" ? 12 : -12);
+  const oy = Y0 + stagger[indexIdx] + 4 * PY + 16;
+  const dir = side === "left" ? 1 : -1;
+  const rot = side === "left" ? 24 : -24;
+  const [top, bottom] = side === "left" ? LEFT_THUMBS : RIGHT_THUMBS;
+  s += `<g transform="rotate(${rot} ${ox + KW / 2} ${oy + KH / 2})">`;
+  top.forEach((pos, i) => { s += svgKey(L.keys[pos], ox + dir * i * PX, oy, pos); });
+  bottom.forEach((pos, i) => { s += svgKey(L.keys[pos], ox + dir * (i + 0.5) * PX, oy + PY, pos); });
+  s += `</g>`;
+  return s;
+}
+
+function svgLayer(L) {
+  const idx = layers.indexOf(L);
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${SVG_W} ${SVG_H}" width="${SVG_W}" height="${SVG_H}" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+<rect width="${SVG_W}" height="${SVG_H}" rx="12" fill="#f7f6f2" stroke="#d9d7cd"/>
+<text x="20" y="22" font-size="14" font-weight="700" fill="#262521">${esc(L.name)}</text><text x="${20 + L.name.length * 9 + 10}" y="22" font-size="11" fill="#6b6a63">layer ${idx}</text>
+${svgHand(L, LEFT_COLS, STAGGER_L, X0_L, "left")}
+${svgHand(L, RIGHT_COLS, STAGGER_R, X0_R, "right")}
+</svg>`;
+}
+
+const svgDir = path.join(root, "docs", "layers");
+fs.mkdirSync(svgDir, { recursive: true });
+for (const f of fs.readdirSync(svgDir)) if (f.endsWith(".svg")) fs.unlinkSync(path.join(svgDir, f));
+const svgFiles = {};
+for (const L of layers) {
+  const name = `${String(layers.indexOf(L)).padStart(2, "0")}-${L.id}.svg`;
+  fs.writeFileSync(path.join(svgDir, name), svgLayer(L));
+  svgFiles[L.id] = name;
+}
+
 let layersHtml = "";
 for (const L of layers) {
   layersHtml += `<section class="layer" id="layer-${L.id}"><h2>${esc(L.name)} <span class="layer-id">layer ${layers.indexOf(L)}</span></h2>
-<div class="card"><div class="hands">${handHtml(LEFT_COLS, LEFT_THUMBS, L, "left")}${handHtml(RIGHT_COLS, RIGHT_THUMBS, L, "right")}</div></div></section>\n`;
+<div class="card">${svgLayer(L).replace(/ width="\d+" height="\d+"/, "")}</div></section>\n`;
 }
 
 let combosHtml = combos.map((c) => `<tr><td>${esc(c.binding.tap)}</td><td>${esc(c.positions.map(baseLabel).join(" + "))}</td><td>${esc(c.note)}</td><td>${c.ms} ms, after ${c.idle} ms idle</td></tr>`).join("\n");
@@ -312,10 +402,11 @@ const mdCombos = [
   "|---|---|---|---|",
   ...combos.map((c) => `| ${c.binding.tap} | ${c.positions.map(baseLabel).join(" + ")} | ${c.note} | ${c.ms} ms, after ${c.idle} ms idle |`),
 ].join("\n");
+const mdLayers = layers.map((L) => `### ${L.name} (layer ${layers.indexOf(L)})\n\n![${L.name}](docs/layers/${svgFiles[L.id]})\n`).join("\n");
 const md = `<!-- keymap:start — generated by tools/keymap-html.js, do not edit by hand -->
-_Generated ${generated} from \`config/dactyl_manuform_5x6.keymap\`. **bold** = tap, *italic* = hold, ▽ = falls through to base, · = nothing. The same reference with the physical key shape is in [docs/keymap.html](docs/keymap.html)._
+_Generated ${generated} from \`config/dactyl_manuform_5x6.keymap\`. Small blue text = modifier while held, small amber text = layer while held, ▽ = falls through to the base layer, dashed = nothing. Blue keys are home-row mods, amber keys change layer, purple keys are Bluetooth and system. One page with all layers: [docs/keymap.html](docs/keymap.html)._
 
-${layers.map(mdLayer).join("\n")}
+${mdLayers}
 ### Combos (base layer)
 
 ${mdCombos}
