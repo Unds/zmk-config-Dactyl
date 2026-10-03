@@ -52,6 +52,12 @@ const KEYS = {
   C_VOL_DN: "Vol −", C_VOL_UP: "Vol +",
 };
 for (let i = 1; i <= 24; i++) KEYS["F" + i] = "F" + i;
+// What the key produces with Shift held (US layout), shown as the small upper legend.
+const SHIFTED = {
+  N1: "!", N2: "@", N3: "#", N4: "$", N5: "%", N6: "^", N7: "&", N8: "*", N9: "(", N0: ")",
+  MINUS: "_", EQUAL: "+", LBKT: "{", RBKT: "}", BSLH: "|", SEMI: ":", SQT: "\"",
+  COMMA: "<", DOT: ">", FSLH: "?", GRAVE: "~",
+};
 const MOD_WRAP = { LC: "Ctrl", LS: "Shift", LA: "Alt", LG: "Win", RC: "Ctrl", RS: "Shift", RA: "AltGr", RG: "Win" };
 const MOD_SHORT = { LGUI: "Win", LALT: "Alt", LCTRL: "Ctrl", LSHFT: "Shift", RGUI: "Win", RALT: "AltGr", RCTRL: "Ctrl", RSHFT: "Shift" };
 
@@ -83,7 +89,7 @@ function parseBinding(tok) {
   const b = parts[0];
   const a = parts.slice(1);
   switch (b) {
-    case "kp": return { tap: keyLabel(a[0]), kind: "key" };
+    case "kp": return { tap: keyLabel(a[0]), shift: SHIFTED[a[0]], kind: "key" };
     case "trans": return { tap: "", kind: "trans" };
     case "none": return { tap: "", kind: "none" };
     case "hml": case "hmr": return { tap: keyLabel(a[1]), hold: MOD_SHORT[a[0]] || a[0], kind: "hrm" };
@@ -186,9 +192,11 @@ function svgKey(k, x, y, pos) {
   if (k.kind === "trans") return s + `<text x="${cx}" y="${y + KH / 2 + 5}" text-anchor="middle" font-size="13" fill="#9a988e">▽</text></g>`;
   const lines = k.tap ? splitLabel(k.tap) : [];
   const hasHold = !!k.hold, hasShift = !!k.shift;
+  const shiftOnTop = hasShift && !hasHold; // plain keycap style: shifted symbol above, main below
   const tapSize = lines.length > 1 || (lines[0] || "").length > 6 ? 10.5 : 13;
-  let cy = y + KH / 2 + (hasHold ? 3 : 0) - (hasShift ? 3 : 0);
+  let cy = y + KH / 2 + (hasHold || shiftOnTop ? 4 : 0) - (hasShift && !shiftOnTop ? 3 : 0);
   if (hasHold && lines.length > 0) s += `<text x="${cx}" y="${y + 11}" text-anchor="middle" font-size="8.5" font-weight="600" fill="${k.kind === "hrm" || k.kind === "modtap" ? "#185fa5" : "#854f0b"}">${esc(k.hold)}</text>`;
+  if (shiftOnTop) s += `<text x="${cx}" y="${y + 14}" text-anchor="middle" font-size="11" font-weight="600" fill="#6b6a63">${esc(k.shift)}</text>`;
   if (lines.length === 0 && hasHold) {
     s += `<text x="${cx}" y="${y + KH / 2 + 4}" text-anchor="middle" font-size="${k.hold.length > 5 ? 10 : 12}" font-weight="700" fill="#854f0b">${esc(k.hold)}</text>`;
   } else {
@@ -196,7 +204,7 @@ function svgKey(k, x, y, pos) {
     const top = cy - ((lines.length - 1) * lh) / 2 + tapSize / 2 - 1;
     lines.forEach((ln, i) => { s += `<text x="${cx}" y="${top + i * lh}" text-anchor="middle" font-size="${tapSize}" font-weight="700" fill="#262521">${esc(ln)}</text>`; });
   }
-  if (hasShift) s += `<text x="${cx}" y="${y + KH - 5}" text-anchor="middle" font-size="8" fill="#6b6a63">⇧ ${esc(k.shift)}</text>`;
+  if (hasShift && !shiftOnTop) s += `<text x="${cx}" y="${y + KH - 5}" text-anchor="middle" font-size="8" fill="#6b6a63">⇧ ${esc(k.shift)}</text>`;
   return s + `</g>`;
 }
 
